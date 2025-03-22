@@ -8,6 +8,14 @@ from io import BytesIO
 from metrics_config import summarized_metrics
 from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
+def country_to_flag(country):
+    flags = {
+        "Argentina": "🇦🇷", "Brazil": "🇧🇷", "Colombia": "🇨🇴", "Uruguay": "🇺🇾",
+        "Chile": "🇨🇱", "Paraguay": "🇵🇾", "Peru": "🇵🇪", "Ecuador": "🇪🇨",
+        "Venezuela": "🇻🇪", "Bolivia": "🇧🇴"
+    }
+    return flags.get(country, country)
+
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
@@ -127,12 +135,17 @@ else:
 
     st.markdown(t['tabla'])
 
-    columnas_info = ['Birth country''Team', 'Age', 'Value', 'Contract expires']
+    columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']
     columnas_existentes = [col for col in columnas_info if col in df.columns]
     mostrar = top_df[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
-    st.dataframe(mostrar.set_index("Player").round(1))
 
-    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
+    if 'Birth country' in mostrar.columns:
+        mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
+
+    columnas_ordenadas = ['Player'] + [col for col in columnas_info if col in mostrar.columns] + ['ELO']
+    st.dataframe(mostrar[columnas_ordenadas].set_index("Player").round(1))
+
+    st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
@@ -144,3 +157,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
