@@ -8,10 +8,9 @@ from io import BytesIO
 from metrics_config import summarized_metrics
 from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
-# ✅ PRIMERO: Configuración general de página
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
-# ✅ LUEGO: ocultar menús y branding
+# Ocultar menú Streamlit
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
@@ -134,10 +133,10 @@ else:
     fig.update_layout(images=[dict(
         source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
-        x=0, y=1.18,
-        sizex=0.2, sizey=0.2,
+        x=0, y=1.15,
+        sizex=0.15, sizey=0.15,
         xanchor="left", yanchor="top",
-        opacity=0.9,
+        opacity=0.8,
         layer="above"
     )])
 
@@ -153,9 +152,18 @@ else:
         mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
 
     columnas_ordenadas = ['Player'] + [col for col in columnas_info if col in mostrar.columns] + ['ELO']
-    st.dataframe(mostrar[columnas_ordenadas].set_index("Player").round(1))
 
-    st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
+    # Traducciones para la tabla si está en español
+    traducciones_cols = {
+        'Player': 'Jugador', 'Team': 'Equipo', 'Age': 'Edad', 'Value': 'Valor',
+        'Contract expires': 'Contrato hasta', 'Birth country': 'País', 'ELO': 'ELO'
+    }
+    mostrar = mostrar[columnas_ordenadas]
+    mostrar.columns = [traducciones_cols.get(col, col) if idioma == 'Español' else col for col in mostrar.columns]
+
+    st.dataframe(mostrar.set_index("Jugador" if idioma == "Español" else "Player").round(1))
+
+    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
