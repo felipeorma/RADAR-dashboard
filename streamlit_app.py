@@ -34,6 +34,14 @@ def country_to_flag(country):
     return flags.get(country, country)
 
 dual_nationalities = {
+    "B. Brereton Díaz": ("Chile", "🇬🇧 England / 🇨🇱 Chile"),
+    "G. Lapadula": ("Peru", "🇮🇹 Italy / 🇵🇪 Peru"),
+    "O. Sonne": ("Peru", "🇩🇰 Denmark / 🇵🇪 Peru"),
+    "E. Morales": ("Bolivia", "🇺🇸 USA / 🇧🇴 Bolivia"),
+    "J. Yeboah": ("Ecuador", "🇩🇪 Germany / 🇪🇨 Ecuador"),
+    "J. Sarmiento": ("Ecuador", "🇬🇧 England / 🇪🇨 Ecuador"),
+    "N. Fonseca": ("Venezuela", "🇮🇹 Italy / 🇻🇪 Venezuela")
+}
     # Diccionario que relaciona jugadores con doble nacionalidad y cómo deben mostrarse sus banderas y países
     "B. Brereton Díaz": ("Chile", "🇬🇧 England / 🇨🇱 Chile"),
     "G. Lapadula": ("Peru", "🇮🇹 Italy / 🇵🇪 Peru"),
