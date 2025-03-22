@@ -204,6 +204,9 @@ if uploaded_file:
         summary_scores.sort(key=lambda x: -np.mean(list(x[1].values())))
         top_players = summary_scores[:top_n]
 
+        # ✅ Arreglar esto: definir categorías
+        categories = list(summary.keys())
+
         # Radar Plot
         fig = go.Figure()
 
