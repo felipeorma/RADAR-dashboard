@@ -178,14 +178,18 @@ else:
                       'Contrato' if idioma == 'Español' else 'Contract expires',
                       'ELO']
 
+    # Ordenar por ELO antes de mostrar
     df_mostrar_final = mostrar[columnas_final].set_index(columnas_final[0])
+    df_mostrar_final = df_mostrar_final.sort_values('ELO', ascending=False)
 
+    # Estilo para columna ELO
     styled = df_mostrar_final.style.format(precision=1).applymap(
         lambda val: 'background-color: #dce6fa; color: black; font-weight: bold;', subset=['ELO']
     )
 
     st.dataframe(styled)
 
+    # Botón de descarga
     st.download_button(t['csv'], df_mostrar_final.reset_index().to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
