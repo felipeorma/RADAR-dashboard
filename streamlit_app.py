@@ -42,6 +42,7 @@ dual_nationalities = {
     "J. Yeboah": ("Ecuador", "🇩🇪 Germany / 🇪🇨 Ecuador"),
     "J. Sarmiento": ("Ecuador", "🇬🇧 England / 🇪🇨 Ecuador"),
     "N. Fonseca": ("Venezuela", "🇮🇹 Italy / 🇻🇪 Venezuela")
+}
 
     "B. Brereton Díaz": ("Chile", "🇬🇧/🇨🇱"),
     "G. Lapadula": ("Peru", "🇮🇹/🇵🇪"),
@@ -208,5 +209,3 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
-
