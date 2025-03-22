@@ -291,7 +291,7 @@ if uploaded_file:
                     text="By: Felipe Ormazabal<br>Football Scout - Data Analyst",
                     showarrow=False,
                     x=0.5,
-                    y=-0.22,
+                    y=-0.82,
                     xref="paper",
                     yref="paper",
                     font=dict(color='white', size=12),
