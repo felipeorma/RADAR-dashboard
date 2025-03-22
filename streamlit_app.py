@@ -33,6 +33,16 @@ def country_to_flag(country):
     }
     return flags.get(country, country)
 
+dual_nationalities = {
+    "B. Brereton Díaz": "🇬🇧/🇨🇱",
+    "G. Lapadula": "🇮🇹/🇵🇪",
+    "O. Sonne": "🇩🇰/🇵🇪",
+    "E. Morales": "🇺🇸/🇧🇴",
+    "J. Yeboah": "🇩🇪/🇪🇨",
+    "J. Sarmiento": "🇬🇧/🇪🇨",
+    "N. Fonseca": "🇮🇹/🇻🇪"
+}
+
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
 textos = {
@@ -152,14 +162,19 @@ else:
 
     st.markdown(t['tabla'])
 
-    columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']  # Team se mostrará como Club
+    columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']
     columnas_existentes = [col for col in columnas_info if col in df.columns]
     mostrar = tabla_completa[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
 
     if 'Birth country' in mostrar.columns:
         mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
 
-    
+    # Reemplazar país por nacionalidad dual si aplica
+    mostrar['Birth country'] = mostrar.apply(
+        lambda row: dual_nationalities.get(row['Player'], row['Birth country']),
+        axis=1
+    )
+
     columnas_ordenadas = ['Player', 'Team', 'Age', 'Birth country', 'Contract expires', 'ELO']
     if idioma == 'Español':
         mostrar = mostrar.rename(columns={
@@ -172,9 +187,8 @@ else:
         })
         columnas_ordenadas = ['Jugador', 'Club', 'Edad', 'País', 'Contrato', 'ELO']
 
-    
-    
-    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)        .applymap(lambda v: 'background-color: #347aeb; color: black; font-weight: bold;', subset=['ELO'])
+    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)\
+        .applymap(lambda v: 'background-color: #347aeb; color: black; font-weight: bold;', subset=['ELO'])
     st.dataframe(styled_df)
 
     st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
