@@ -150,26 +150,29 @@ else:
 
     st.markdown(t['tabla'])
 
-    columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']
+    columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']  # Team se mostrará como Club
     columnas_existentes = [col for col in columnas_info if col in df.columns]
     mostrar = top_df[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
 
     if 'Birth country' in mostrar.columns:
         mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
 
-    columnas_ordenadas = ['Player', 'Age', 'Birth country', 'Contract expires', 'ELO']
+    
+    columnas_ordenadas = ['Player', 'Team', 'Age', 'Birth country', 'Contract expires', 'ELO']
     if idioma == 'Español':
         mostrar = mostrar.rename(columns={
             'Player': 'Jugador',
+            'Team': 'Club',
             'Age': 'Edad',
             'Birth country': 'País',
             'Contract expires': 'Contrato',
             'ELO': 'ELO'
         })
-        columnas_ordenadas = ['Jugador', 'Edad', 'País', 'Contrato', 'ELO']
+        columnas_ordenadas = ['Jugador', 'Club', 'Edad', 'País', 'Contrato', 'ELO']
 
     
-    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)        .applymap(lambda v: 'background-color: #d0f0c0; color: black; font-weight: bold;', subset=['ELO'])
+    
+    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)        .applymap(lambda v: 'background-color: #347aeb; color: black; font-weight: bold;', subset=['ELO'])
     st.dataframe(styled_df)
 
     st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
@@ -184,3 +187,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
