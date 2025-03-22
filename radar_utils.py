@@ -111,3 +111,4 @@ def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma):
     )
 
     return fig
+
