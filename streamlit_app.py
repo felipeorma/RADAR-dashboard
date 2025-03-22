@@ -10,9 +10,15 @@ from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
-# Ocultar menú Streamlit
+# Ocultar menú Streamlit y usar fuente moderna
 st.markdown("""
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        html, body, [class*="css"]  {
+            font-family: 'Inter', sans-serif;
+        }
+
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
@@ -151,19 +157,21 @@ else:
     if 'Birth country' in mostrar.columns:
         mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
 
-    columnas_ordenadas = ['Player'] + [col for col in columnas_info if col in mostrar.columns] + ['ELO']
+    columnas_ordenadas = ['Player', 'Age', 'Birth country', 'Contract expires', 'ELO']
+    if idioma == 'Español':
+        mostrar = mostrar.rename(columns={
+            'Player': 'Jugador',
+            'Age': 'Edad',
+            'Birth country': 'País',
+            'Contract expires': 'Contrato',
+            'ELO': 'ELO'
+        })
+        columnas_ordenadas = ['Jugador', 'Edad', 'País', 'Contrato', 'ELO']
 
-    # Traducciones para la tabla si está en español
-    traducciones_cols = {
-        'Player': 'Jugador', 'Team': 'Equipo', 'Age': 'Edad', 'Value': 'Valor',
-        'Contract expires': 'Contrato hasta', 'Birth country': 'País', 'ELO': 'ELO'
-    }
-    mostrar = mostrar[columnas_ordenadas]
-    mostrar.columns = [traducciones_cols.get(col, col) if idioma == 'Español' else col for col in mostrar.columns]
+    styled_df = mostrar[columnas_ordenadas].style.highlight_max(axis=0, subset=['ELO'], color='#3AE37B').format(precision=1)
+    st.dataframe(styled_df)
 
-    st.dataframe(mostrar.set_index("Jugador" if idioma == "Español" else "Player").round(1))
-
-    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
+    st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
