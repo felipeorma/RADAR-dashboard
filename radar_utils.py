@@ -1,101 +1,80 @@
 
-# radar_utils.py
-
-import pandas as pd
-import numpy as np
 from scipy.stats import rankdata
 import plotly.graph_objects as go
 
-def cumple_rol(pos, rol, keywords_by_role):
-    if pd.isna(pos): return False
-    keywords = keywords_by_role.get(rol, [])
-    return any(k in pos for k in keywords)
+# Esta función verifica si una posición pertenece al rol seleccionado
+def cumple_rol(posicion, rol, keywords_por_rol):
+    if not isinstance(posicion, str):
+        return False
+    for keyword in keywords_por_rol.get(rol, []):
+        if keyword in posicion:
+            return True
+    return False
 
-def calcular_percentiles(df_filtered, summary_dict):
-    summary_scores = []
-    for _, row in df_filtered.iterrows():
-        cat_scores = {}
-        for category, weights in summary_dict.items():
-            score = 0
-            valid_weights = 0
-            for metric, weight in weights.items():
-                value = row.get(metric)
-                if pd.notna(value):
-                    score += value * weight
-                    valid_weights += abs(weight)
-            cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
-        summary_scores.append((row['Player'], cat_scores))
+# Esta función calcula los percentiles para cada categoría resumida
+def calcular_percentiles(df_filtrado, resumen_metricas):
+    categorias = list(resumen_metricas.keys())
+    scores = []
 
-    category_names = list(summary_dict.keys())
-    category_df = pd.DataFrame([dict(Player=name, **scores) for name, scores in summary_scores])
-    for cat in category_names:
-        values = category_df[cat].values
-        category_df[cat] = rankdata(values, method='average') / len(values) * 100
-    category_df['Promedio'] = category_df[category_names].mean(axis=1)
+    for _, fila in df_filtrado.iterrows():
+        puntajes = {}
+        for categoria, pesos in resumen_metricas.items():
+            puntaje = 0
+            suma_pesos = 0
+            for metrica, peso in pesos.items():
+                valor = fila.get(metrica)
+                if pd.notna(valor):
+                    puntaje += valor * peso
+                    suma_pesos += abs(peso)
+            puntajes[categoria] = puntaje / suma_pesos if suma_pesos > 0 else 0
+        scores.append({'UniqueID': fila['UniqueID'], 'Player': fila['Player'], **puntajes})
 
-    return category_df, category_names
+    df_scores = pd.DataFrame(scores)
 
-def generar_radar(top_players, df, category_names, role, top_n, idioma):
-    colores = ['#00FFFF', '#FF6F61', '#6A5ACD', '#FFD700', '#00FF7F']
+    for categoria in categorias:
+        valores = df_scores[categoria].values
+        df_scores[categoria] = rankdata(valores, method='average') / len(valores) * 100
+
+    df_scores['Promedio'] = df_scores[categorias].mean(axis=1)
+    return df_scores, categorias
+
+# Esta función genera el gráfico de radar Plotly con opciones estilizadas
+def generar_radar(jugadores_top, df, categorias, rol_traducido, top_n, idioma):
+    colores = ['#00C9A7', '#FF6B6B', '#845EC2', '#FFC75F', '#008E9B']
     fig = go.Figure()
 
-    def abreviado(pais):
-        codigos = {
-            "Argentina": "ARG", "Brazil": "BRA", "Colombia": "COL", "Uruguay": "URU",
-            "Chile": "CHL", "Paraguay": "PAR", "Peru": "PER", "Ecuador": "ECU",
-            "Venezuela": "VEN", "Bolivia": "BOL"
-        }
-        return codigos.get(pais, pais[:3].upper())
+    for i, (uid, valores) in enumerate(jugadores_top):
+        fila_jugador = df[df['UniqueID'] == uid].head(1)
+        nombre = fila_jugador['Player'].values[0] if not fila_jugador.empty else uid
+        pais = fila_jugador['Birth country'].values[0] if 'Birth country' in fila_jugador.columns else ''
+        club = fila_jugador['Team'].values[0] if 'Team' in fila_jugador.columns else ''
+        nombre_grafico = f"{nombre} ({club})"
 
-    for i, (name, values) in enumerate(top_players):
-        jugador_row = df[df['Player'] == name].head(1)
-        country = jugador_row['Birth country'].values[0] if not jugador_row.empty else ""
-        cod = abreviado(country)
-        name_label = f"{name} [{cod}]"
-        r = [values[c] for c in category_names] + [values[category_names[0]]]
+        r = [valores[c] for c in categorias] + [valores[categorias[0]]]
         fig.add_trace(go.Scatterpolar(
             r=r,
-            theta=category_names + [category_names[0]],
+            theta=categorias + [categorias[0]],
             fill='toself',
-            name=name_label,
+            name=nombre_grafico,
             line=dict(color=colores[i % len(colores)], width=3),
             opacity=0.85
         ))
 
-    titulo = "Radar Resumido<br>Top {top_n} {role}s" if idioma == 'Español' else "Radar Summary<br>Top {top_n} {role}s"
-    firma = "By: Felipe Ormazabal<br>Football Scout - Data Analyst"
-
     fig.update_layout(
         title=dict(
-            text=titulo.format(top_n=top_n, role=role),
-            x=0.5,
-            y=0.95,
-            xanchor='center',
-            font=dict(color='white', size=22)
+            text=f"<b>Radar Scouting CONMEBOL - Top {top_n} {rol_traducido}s</b>",
+            x=0.5, y=0.95, xanchor='center', yanchor='top',
+            font=dict(size=22, color='white')
         ),
         polar=dict(
             bgcolor='rgba(0,0,0,0)',
-            radialaxis=dict(visible=True, range=[0, 100], showticklabels=False,
-                            gridcolor='rgba(255,255,255,0.1)', linecolor='rgba(255,255,255,0.2)'),
-            angularaxis=dict(tickfont=dict(color='white', size=14), direction='clockwise',
-                             gridcolor='rgba(255,255,255,0.1)', linecolor='rgba(255,255,255,0.2)')
+            radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
+            angularaxis=dict(tickfont=dict(size=13, color='white'))
         ),
         paper_bgcolor='#0d0d0d',
         plot_bgcolor='#0d0d0d',
-        showlegend=True,
-        legend=dict(font=dict(color='white', size=12), orientation='v', x=1, y=1),
-        margin=dict(l=60, r=60, t=100, b=100),
-        annotations=[
-            dict(
-                text=firma,
-                showarrow=False,
-                x=0.5,
-                y=-0.3,
-                xref="paper",
-                yref="paper",
-                font=dict(color='white', size=12),
-                align='center'
-            )
-        ]
+        legend=dict(font=dict(color='white', size=12), orientation='v'),
+        margin=dict(l=60, r=60, t=100, b=100)
     )
+
     return fig
