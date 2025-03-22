@@ -134,8 +134,8 @@ if df_filtered.empty:
     st.warning(t['no_data'])
 else:
     # Tomar los top jugadores dentro del subset visual
-    tabla_completa = df_percentiles.merge(df[['Player']], on="Player")
-    top_df = tabla_completa[tabla_completa['Player'].isin(df_filtered['Player'])].sort_values("ELO", ascending=False).head(top_n)
+    top_df = df_percentiles.merge(df[['Player']], on="Player")
+    top_df = top_df[top_df['Player'].isin(df_filtered['Player'])].sort_values("ELO", ascending=False).head(top_n)
     top_players = [(row['Player'], {cat: row.get(cat, 0) for cat in categorias}) for _, row in top_df.iterrows()]
 
     # Radar
