@@ -1,134 +1,43 @@
-# radar_utils.py
-
-import numpy as np
-import pandas as pd
 from scipy.stats import rankdata
-import plotly.graph_objects as go
+import pandas as pd
 
-# Esta función verifica si una posición coincide con los keywords del rol
-# Se usa para filtrar a los jugadores según su primera posición
+# Esta función verifica si la posición del jugador coincide con el rol seleccionado
+# Considera solo la primera posición listada en caso de múltiples
 
-def cumple_rol(pos, rol, keywords_by_role):
-    if pd.isna(pos):
+def cumple_rol(posicion, rol, keywords_by_role):
+    if pd.isna(posicion):
         return False
-    pos = str(pos).split(',')[0].strip()
-    keywords = keywords_by_role.get(rol, [])
-    return any(k in pos for k in keywords)
+    primera_pos = str(posicion).split(',')[0].strip()
+    return any(keyword in primera_pos for keyword in keywords_by_role.get(rol, []))
 
-# Esta función calcula los percentiles y ELO de cada jugador
-# Toma un DataFrame, las métricas resumidas por categoría y una columna única opcional para evitar duplicados
+# Esta función calcula los percentiles de los jugadores con base en las métricas resumidas
+# Permite usar una columna única para evitar jugadores duplicados (por nombre + club, por ejemplo)
 
-def calcular_percentiles(df, resumen, unique_col=None):
-    category_names = list(resumen.keys())
-    category_scores = []
+def calcular_percentiles(df, resumen_metricas, unique_col="Player"):
+    nombres_categorias = list(resumen_metricas.keys())
+    data = []
 
-    # Si se pasa una columna única, eliminamos duplicados
-    if unique_col and unique_col in df.columns:
-        df = df.drop_duplicates(subset=unique_col, keep='first')
+    # Iteramos por cada jugador
+    for _, fila in df.iterrows():
+        jugador = fila[unique_col]
+        resultados = {unique_col: jugador}
+        for categoria, pesos in resumen_metricas.items():
+            puntaje = 0
+            peso_total = 0
+            for metrica, peso in pesos.items():
+                valor = fila.get(metrica)
+                if pd.notna(valor):
+                    puntaje += valor * peso
+                    peso_total += abs(peso)
+            resultados[categoria] = puntaje / peso_total if peso_total > 0 else 0
+        data.append(resultados)
 
-    for _, row in df.iterrows():
-        cat_scores = {}
-        for category, weights in resumen.items():
-            score = 0
-            valid_weights = 0
-            for metric, weight in weights.items():
-                value = row.get(metric)
-                if pd.notna(value):
-                    score += value * weight
-                    valid_weights += abs(weight)
-            cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
-        category_scores.append((row['Player'], cat_scores))
+    df_resultados = pd.DataFrame(data)
 
-    category_df = pd.DataFrame([dict(Player=name, **scores) for name, scores in category_scores])
+    # Normalizamos cada categoría a percentiles
+    for categoria in nombres_categorias:
+        valores = df_resultados[categoria].values
+        df_resultados[categoria] = rankdata(valores, method='average') / len(valores) * 100
 
-    for cat in category_names:
-        values = category_df[cat].values
-        category_df[cat] = rankdata(values, method='average') / len(values) * 100
-
-    category_df['Promedio'] = category_df[category_names].mean(axis=1)
-
-    return category_df, category_names
-
-
-# Esta función genera el gráfico radar con los jugadores seleccionados
-# Utiliza Plotly y permite mostrar hasta 5 jugadores con colores diferenciados y diseño moderno
-
-def generar_radar(top_players, df, categorias, rol, top_n, idioma):
-    colores = ['#00C1D4', '#FF6F91', '#845EC2', '#FFC75F', '#008E9B']
-
-    def abreviado(pais):
-        codigos = {
-            "Argentina": "ARG", "Brazil": "BRA", "Colombia": "COL", "Uruguay": "URU",
-            "Chile": "CHL", "Paraguay": "PAR", "Peru": "PER", "Ecuador": "ECU",
-            "Venezuela": "VEN", "Bolivia": "BOL"
-        }
-        return codigos.get(pais, pais[:3].upper())
-
-    fig = go.Figure()
-
-    for i, (name, values) in enumerate(top_players):
-        jugador_row = df[df['Player'] == name].head(1)
-        country = jugador_row['Birth country'].values[0] if not jugador_row.empty else ""
-        cod = abreviado(country)
-        name_label = f"{name} [{cod}]"
-
-        r = [values[c] for c in categorias] + [values[categorias[0]]]
-        fig.add_trace(go.Scatterpolar(
-            r=r,
-            theta=categorias + [categorias[0]],
-            fill='toself',
-            name=name_label,
-            line=dict(color=colores[i % len(colores)], width=3),
-            opacity=0.85
-        ))
-
-    fig.update_layout(
-        title=dict(
-            text=f"<b>Radar Resumido<br>Top {top_n} {rol}s</b>",
-            x=0.5,
-            y=0.93,
-            xanchor='center',
-            yanchor='top',
-            font=dict(color='white', size=22, family='Poppins')
-        ),
-        polar=dict(
-            bgcolor='rgba(0,0,0,0)',
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],
-                showticklabels=False,
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)'
-            ),
-            angularaxis=dict(
-                tickfont=dict(color='white', size=14),
-                direction='clockwise',
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)'
-            )
-        ),
-        paper_bgcolor='#0d0d0d',
-        plot_bgcolor='#0d0d0d',
-        showlegend=True,
-        legend=dict(
-            font=dict(color='white', size=12),
-            orientation='v',
-            x=1,
-            y=1
-        ),
-        margin=dict(l=60, r=60, t=100, b=100),
-        annotations=[
-            dict(
-                text="By: Felipe Ormazabal<br>Football Scout - Data Analyst",
-                showarrow=False,
-                x=0.5,
-                y=-0.32,
-                xref="paper",
-                yref="paper",
-                font=dict(color='white', size=12),
-                align='center'
-            )
-        ]
-    )
-
-    return fig
+    df_resultados['Promedio'] = df_resultados[nombres_categorias].mean(axis=1)
+    return df_resultados, nombres_categorias
