@@ -56,8 +56,24 @@ if uploaded_file:
         'Forward': ['CF', 'ST', 'SS']
     }
 
-    roles = list(summarized_metrics.keys())
-    selected_role = st.selectbox(t['rol'], roles)
+    roles_map = {
+        'Goalkeeper': 'Portero',
+        'Defender': 'Defensor',
+        'Fullback': 'Lateral',
+        'Midfielder': 'Mediocampista',
+        'Wingers': 'Extremo',
+        'Forward': 'Delantero'
+    }
+    
+    # Según idioma
+    roles_display = list(roles_map.values()) if idioma == 'Español' else list(roles_map.keys())
+    
+    # Selectbox al usuario
+    selected_role_display = st.selectbox(t['rol'], roles_display)
+    
+    # Invertimos el dict para volver a la clave original
+    reverse_map = {v: k for k, v in roles_map.items()}
+    selected_role = reverse_map.get(selected_role_display, selected_role_display)
     countries = ['Todos' if idioma == 'Español' else 'All'] + sorted(df['Birth country'].dropna().unique())
     selected_country = st.selectbox(t['pais'], countries)
     min_minutes = st.slider(t['min'], 0, 1500, 500, 100)
