@@ -13,10 +13,10 @@ st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 # Ocultar menú Streamlit y usar fuente moderna
 st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
         html, body, [class*="css"]  {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
         #MainMenu {visibility: hidden;}
@@ -37,7 +37,7 @@ idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
 textos = {
     'Español': {
-        'titulo': "📊 Radar Scouting Básico - Visualización resumida",
+        'titulo': "📊 Radar Scouting CONMEBOL - Resumido",
         'rol': "🔎 Selecciona el rol",
         'pais': "🌎 Filtrar por país",
         'min': "⏱️ Minutos jugados mínimos",
@@ -140,7 +140,7 @@ else:
         source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
         x=0, y=1.15,
-        sizex=0.15, sizey=0.15,
+        sizex=0.2, sizey=0.2,
         xanchor="left", yanchor="top",
         opacity=0.8,
         layer="above"
@@ -183,3 +183,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
