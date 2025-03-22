@@ -40,7 +40,7 @@ textos = {
 }
 t = textos[idioma]
 
-st.image("https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/CONMEBOL_logo_%282017%29.svg/512px-CONMEBOL_logo_%282017%29.svg.png", width=100)
+st.image("https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png", width=100)
 
 st.title(t['titulo'])
 
@@ -113,9 +113,8 @@ else:
 
     fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma)
 
-    # Agregar logo al radar
     fig.update_layout(images=[dict(
-        source="https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/CONMEBOL_logo_%282017%29.svg/512px-CONMEBOL_logo_%282017%29.svg.png",
+        source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
         x=0, y=1.18,
         sizex=0.2, sizey=0.2,
