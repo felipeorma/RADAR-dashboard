@@ -223,7 +223,7 @@ if uploaded_file:
         top_players = [(row['Player'], {cat: row[cat] for cat in category_names}) for _, row in top_df.iterrows()]
 
         fig = go.Figure()
-        colores = ['#FF4B91', '#FF884B', '#4BCFFA', '#B15EFF', '#3AE37B']
+        colores = ['#00f5d4', '#9b5de5', '#f15bb5', '#fee440', '#00bbf9']
         for i, (name, values) in enumerate(top_players):
             r = [values[c] for c in category_names] + [values[category_names[0]]]
             fig.add_trace(go.Scatterpolar(
@@ -232,34 +232,48 @@ if uploaded_file:
                 fill='toself',
                 name=name,
                 line=dict(color=colores[i % len(colores)], width=2),
-                opacity=0.8
+                opacity=0.85
             ))
-
+        
         fig.update_layout(
+            title={
+                'text': f"<b>Player Analysis: {top_players[0][0]}</b>",
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': dict(color='white', size=22)
+            },
             polar=dict(
                 bgcolor='rgba(0,0,0,0)',
-                radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
-                angularaxis=dict(tickfont=dict(size=13), direction='clockwise')
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 100],
+                    showticklabels=False,
+                    gridcolor='rgba(255,255,255,0.1)',
+                    linecolor='rgba(255,255,255,0.2)'
+                ),
+                angularaxis=dict(
+                    tickfont=dict(color='white', size=14),
+                    direction='clockwise',
+                    gridcolor='rgba(255,255,255,0.1)',
+                    linecolor='rgba(255,255,255,0.2)'
+                )
             ),
-            paper_bgcolor='white',
-            showlegend=True,
-            margin=dict(l=40, r=40, t=50, b=40),
-            title=f"<b>Radar resumido - Top {top_n} {selected_role}s</b>"
+            paper_bgcolor='#0d0d0d',
+            plot_bgcolor='#0d0d0d',
+            showlegend=(top_n > 1),
+            margin=dict(l=40, r=40, t=60, b=60),
+            annotations=[
+                dict(
+                    text="By: Felipe Ormazabal<br>Football Scout - Data Analyst",
+                    showarrow=False,
+                    x=0.5,
+                    y=-0.1,
+                    xref="paper",
+                    yref="paper",
+                    font=dict(color='white', size=12),
+                    align='center'
+                )
+            ]
         )
-
+        
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown("### 📋 Tabla de percentiles")
-        st.dataframe(top_df.set_index('Player')[category_names + ['Promedio']].round(1))
-
-        csv = top_df.to_csv(index=False).encode('utf-8')
-        st.download_button("⬇️ Descargar tabla en CSV", csv, "ranking_percentiles.csv", "text/csv")
-
-        try:
-            st.download_button(
-                label="🖼️ Descargar radar como imagen PNG",
-                data=fig.to_image(format="png"),
-                file_name="radar.png",
-                mime="image/png"
-            )
-        except Exception:
-            st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
