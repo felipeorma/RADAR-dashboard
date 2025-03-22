@@ -201,8 +201,26 @@ if uploaded_file:
                 cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
             summary_scores.append((row['Player'], cat_scores))
 
-        summary_scores.sort(key=lambda x: -np.mean(list(x[1].values())))
-        top_players = summary_scores[:top_n]
+        # Convertir cada categoría a percentiles
+        from scipy.stats import rankdata
+        
+        # Preparar tabla para normalizar
+        category_names = list(summary.keys())
+        category_df = pd.DataFrame([
+            dict(Player=name, **scores) for name, scores in summary_scores
+        ])
+        
+        # Calcular percentiles por columna
+        for cat in category_names:
+            values = category_df[cat].values
+            category_df[cat] = rankdata(values, method='average') / len(values) * 100
+        
+        # Volver a armar top_players con percentiles
+        top_players = []
+        for _, row in category_df.sort_values(category_names, ascending=False).head(top_n).iterrows():
+            player_name = row['Player']
+            cat_scores = {cat: row[cat] for cat in category_names}
+            top_players.append((player_name, cat_scores))
 
         # ✅ Arreglar esto: definir categorías
         categories = list(summary.keys())
