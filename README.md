@@ -1,5 +1,5 @@
 
-# ⚽ Radar Scouting CONMEBOL
+# ⚽ Radar Scouting basico
 
 Aplicación interactiva desarrollada en Streamlit para visualizar jugadores con métricas resumidas por posición, usando radar charts personalizados en español o inglés.
 
