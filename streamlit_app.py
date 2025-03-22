@@ -40,6 +40,8 @@ textos = {
 }
 t = textos[idioma]
 
+st.image("https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/CONMEBOL_logo_%282017%29.svg/512px-CONMEBOL_logo_%282017%29.svg.png", width=100)
+
 st.title(t['titulo'])
 
 url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
@@ -110,17 +112,28 @@ else:
     top_players = [(row['Player'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
 
     fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma)
+
+    # Agregar logo al radar
+    fig.update_layout(images=[dict(
+        source="https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/CONMEBOL_logo_%282017%29.svg/512px-CONMEBOL_logo_%282017%29.svg.png",
+        xref="paper", yref="paper",
+        x=0, y=1.18,
+        sizex=0.2, sizey=0.2,
+        xanchor="left", yanchor="top",
+        opacity=0.9,
+        layer="above"
+    )])
+
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown(t['tabla'])
 
     columnas_info = ['Player', 'Team', 'Age', 'Value', 'Contract expires', 'ELO']
-    columnas_info = [col for col in columnas_info if col in df.columns] + ['ELO']
-    mostrar = top_df.merge(df[columnas_info].drop_duplicates('Player'), on='Player', how='left')
-    mostrar = mostrar[['Player'] + [col for col in columnas_info if col != 'Player']]
-    st.dataframe(mostrar.set_index("Player").round(1))
+    columnas_existentes = [col for col in columnas_info if col in df.columns]
+    merged = df_percentiles[['Player', 'ELO']].merge(df[columnas_existentes + ['Player']], on='Player', how='left')
+    st.dataframe(merged.set_index("Player").round(1))
 
-    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
+    st.download_button(t['csv'], merged.to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
@@ -132,4 +145,3 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
