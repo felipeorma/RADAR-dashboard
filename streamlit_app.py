@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -12,7 +13,6 @@ uploaded_file = st.file_uploader("📂 Sube tu archivo Excel con datos de jugado
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # === Configuración de filtros ===
     keywords_by_role = {
         'Goalkeeper': ['GK'],
         'Defender': ['CB', 'RCB', 'LCB'],
@@ -170,6 +170,14 @@ if uploaded_file:
     countries = ['Todos'] + sorted(df['Birth country'].dropna().unique())
     selected_country = st.selectbox("🌎 Filtrar por país", countries)
     min_minutes = st.slider("⏱️ Minutos jugados mínimos", 0, 1500, 500, 100)
+
+    if 'Age' in df.columns:
+        min_edad = int(df['Age'].min())
+        max_edad = int(df['Age'].max())
+        rango_edad = st.slider("🎂 Edad (rango)", min_edad, max_edad, (min_edad, max_edad))
+    else:
+        rango_edad = (0, 100)
+
     top_n = st.slider("🏅 Top jugadores a mostrar", 1, 5, 3)
 
     def cumple_rol(pos, rol):
@@ -180,7 +188,10 @@ if uploaded_file:
     df_filtered = df[df['Position'].apply(lambda x: cumple_rol(x, selected_role))]
     if selected_country != 'Todos':
         df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
-    df_filtered = df_filtered[df_filtered['Minutes played'] >= min_minutes]
+    df_filtered = df_filtered[
+        (df_filtered['Minutes played'] >= min_minutes) &
+        (df_filtered['Age'].between(rango_edad[0], rango_edad[1]))
+    ]
 
     if df_filtered.empty:
         st.warning("⚠️ No hay jugadores que cumplan los filtros.")
@@ -201,19 +212,16 @@ if uploaded_file:
                 cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
             summary_scores.append((row['Player'], cat_scores))
 
-        # Normalizar a percentiles
         category_names = list(summary.keys())
         category_df = pd.DataFrame([dict(Player=name, **scores) for name, scores in summary_scores])
         for cat in category_names:
             values = category_df[cat].values
             category_df[cat] = rankdata(values, method='average') / len(values) * 100
 
-        # Reordenar y seleccionar top N
         category_df['Promedio'] = category_df[category_names].mean(axis=1)
         top_df = category_df.sort_values('Promedio', ascending=False).head(top_n)
         top_players = [(row['Player'], {cat: row[cat] for cat in category_names}) for _, row in top_df.iterrows()]
 
-        # Radar
         fig = go.Figure()
         colores = ['#FF4B91', '#FF884B', '#4BCFFA', '#B15EFF', '#3AE37B']
         for i, (name, values) in enumerate(top_players):
@@ -230,7 +238,7 @@ if uploaded_file:
         fig.update_layout(
             polar=dict(
                 bgcolor='rgba(0,0,0,0)',
-                radialaxis=dict(visible=True, range=[0, 100], showticklabels=False, ticks=''),
+                radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
                 angularaxis=dict(tickfont=dict(size=13), direction='clockwise')
             ),
             paper_bgcolor='white',
@@ -240,16 +248,12 @@ if uploaded_file:
         )
 
         st.plotly_chart(fig, use_container_width=True)
-
-        # Mostrar tabla
         st.markdown("### 📋 Tabla de percentiles")
         st.dataframe(top_df.set_index('Player')[category_names + ['Promedio']].round(1))
 
-        # Botón para exportar CSV
         csv = top_df.to_csv(index=False).encode('utf-8')
         st.download_button("⬇️ Descargar tabla en CSV", csv, "ranking_percentiles.csv", "text/csv")
 
-        # Botón para exportar imagen
         try:
             st.download_button(
                 label="🖼️ Descargar radar como imagen PNG",
@@ -257,6 +261,5 @@ if uploaded_file:
                 file_name="radar.png",
                 mime="image/png"
             )
-        except Exception as e:
+        except Exception:
             st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
