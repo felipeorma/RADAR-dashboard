@@ -44,7 +44,7 @@ def calcular_percentiles(df, resumen_metricas, unique_col="Player"):
 # Esta función genera un radar chart en Plotly para los jugadores seleccionados
 # Utiliza sus métricas resumidas y los muestra con colores modernos
 
-def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma):
+def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma, id_column="Player"):
     fig = go.Figure()
 
     # Paleta de colores moderna y suave
@@ -58,7 +58,7 @@ def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma):
     }
 
     for i, (uid, valores) in enumerate(jugadores_top):
-        fila = df_original[df_original['Player'] + ' - ' + df_original['Team'] == uid]
+        fila = df_original[df_original[id_column] == uid]
         if fila.empty:
             continue
         fila = fila.iloc[0]
@@ -111,4 +111,3 @@ def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma):
     )
 
     return fig
-
