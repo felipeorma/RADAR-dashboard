@@ -257,7 +257,7 @@ if uploaded_file:
         
         fig.update_layout(
             title=dict(
-                text=f"<b>Radar Resumido\NTop {top_n} {selected_role}s</b>",
+                text=f"<b>Radar Resumido\nTop {top_n} {selected_role}s</b>",
                 x=0.5,
                 y=0.95,
                 xanchor='center',
