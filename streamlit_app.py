@@ -8,15 +8,10 @@ from io import BytesIO
 from metrics_config import summarized_metrics
 from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
-def country_to_flag(country):
-    flags = {
-        "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
-        "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
-        "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
-    }
-    return flags.get(country, country)
+# ✅ PRIMERO: Configuración general de página
+st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
-
+# ✅ LUEGO: ocultar menús y branding
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
@@ -25,8 +20,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
-st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
+def country_to_flag(country):
+    flags = {
+        "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
+        "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
+        "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
+    }
+    return flags.get(country, country)
 
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
