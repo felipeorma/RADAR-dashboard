@@ -115,7 +115,7 @@ else:
 
 top_n = st.slider(t['top'], 1, 5, 3)
 
-df_filtered = df[df['Position'].apply(lambda x: cumple_rol(x, selected_role, keywords_by_role))]
+df_filtered = df[df['Position'].apply(lambda x: cumple_rol(str(x).split(',')[0].strip(), selected_role, keywords_by_role))]
 
 if selected_country not in ['Todos', 'All'] and 'Birth country' in df.columns:
     df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
@@ -189,3 +189,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
