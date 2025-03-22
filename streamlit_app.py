@@ -43,7 +43,7 @@ t = textos[idioma]
 st.title(t['titulo'])
 
 # Cargar archivo desde GitHub
-url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"  # <-- EDITA AQUÍ
+url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
 response = requests.get(url_github_excel)
 df = pd.read_excel(BytesIO(response.content))
 
@@ -120,7 +120,7 @@ else:
     st.dataframe(top_df[columnas_info].set_index("Player").round(1))
 
     st.download_button(t['csv'], top_df[columnas_info].to_csv(index=False).encode('utf-8'),
-                       file_name="ranking_percentiles.csv", mime="text/csv")
+                       file_name="ranking_elo.csv", mime="text/csv")
 
     try:
         st.download_button(
@@ -131,3 +131,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
