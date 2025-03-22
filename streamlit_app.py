@@ -34,7 +34,6 @@ def country_to_flag(country):
     return flags.get(country, country)
 
 # Diccionario que relaciona jugadores con doble nacionalidad y país representado
-dual_nationalities = {
     "B. Brereton Díaz": ("Chile", "🇬🇧 England / 🇨🇱 Chile"),
     "G. Lapadula": ("Peru", "🇮🇹 Italy / 🇵🇪 Peru"),
     "O. Sonne": ("Peru", "🇩🇰 Denmark / 🇵🇪 Peru"),
@@ -116,7 +115,7 @@ if 'Birth country' in df.columns:
 else:
     selected_country = 'Todos' if idioma == 'Español' else 'All'
 
-min_minutes = st.slider(t['min'], 0, 1500, 500, 100)
+min_minutes = st.slider(t['min'], 0, 1500, 100, 100)
 
 if 'Age' in df.columns:
     min_edad = int(df['Age'].min())
@@ -131,7 +130,6 @@ top_n = st.slider(t['top'], 1, 5, 3)
 df_filtered = df[df['Position'].apply(lambda x: cumple_rol(str(x).split(',')[0].strip(), selected_role, keywords_by_role))]
 
 # Corregir nacionalidad para duales
-for jugador, (pais_final, _) in dual_nationalities.items():
     df.loc[df['Player'] == jugador, 'Birth country'] = pais_final
 
 if selected_country not in ['Todos', 'All'] and 'Birth country' in df.columns:
@@ -173,8 +171,6 @@ else:
     mostrar = tabla_completa[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
 
     # Aplicar visualización extendida para nacionalidades duales
-    for jugador, (_, bandera_compuesta) in dual_nationalities.items():
-        mostrar.loc[mostrar['Player'] == jugador, 'Birth country'] = bandera_compuesta
 
     # Reordenar columnas
     columnas_ordenadas = ['Player', 'Team', 'Age', 'Birth country', 'Contract expires', 'ELO']
