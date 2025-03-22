@@ -140,7 +140,7 @@ else:
         source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
         x=0, y=1.15,
-        sizex=0.2, sizey=0.2,
+        sizex=0.3, sizey=0.3,
         xanchor="left", yanchor="top",
         opacity=0.8,
         layer="above"
@@ -183,3 +183,4 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
