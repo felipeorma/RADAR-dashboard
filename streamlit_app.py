@@ -1,15 +1,26 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np
 
-# Cargar datos
-st.title("Radar Scouting CONMEBOL - Streamlit App")
+st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
+st.title("📊 Radar Scouting CONMEBOL - Visualización resumida")
+
 uploaded_file = st.file_uploader("Sube tu archivo Excel con datos de jugadores", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # Diccionario de métricas resumidas por rol
+    # Keywords para detección de rol
+    keywords_by_role = {
+        'Goalkeeper': ['GK'],
+        'Defender': ['CB', 'RCB', 'LCB'],
+        'Fullback': ['LB', 'RB', 'LWB', 'RWB'],
+        'Midfielder': ['CMF', 'DMF', 'AMF', 'LMF', 'RMF'],
+        'Wingers': ['LW', 'RW', 'LAMF', 'RAMF'],
+        'Forward': ['CF', 'ST', 'SS']
+    }
+
     summarized_metrics = {
         'Goalkeeper': {
             'Prevención': {
@@ -153,27 +164,31 @@ if uploaded_file:
         }
     }
 
-    # Interfaz
     roles = list(summarized_metrics.keys())
     selected_role = st.selectbox("Selecciona el rol", roles)
     countries = ['Todos'] + sorted(df['Birth country'].dropna().unique())
-    selected_country = st.selectbox("Filtra por país", countries)
+    selected_country = st.selectbox("Filtrar por país", countries)
     min_minutes = st.slider("Minutos jugados mínimos", 0, 1500, 500, 100)
-    top_n = st.slider("Número de jugadores en radar", 1, 5, 3)
+    top_n = st.slider("Top jugadores a mostrar", 1, 5, 3)
 
-    # Filtro por rol, país y minutos
-    df_filtered = df[df['Position'].str.contains(selected_role, na=False)]
+    # Filtro mejorado por keywords
+    def cumple_rol(pos, rol):
+        if pd.isna(pos): return False
+        keywords = keywords_by_role.get(rol, [])
+        return any(k in pos for k in keywords)
+
+    df_filtered = df[df['Position'].apply(lambda x: cumple_rol(x, selected_role))]
     if selected_country != 'Todos':
         df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
     df_filtered = df_filtered[df_filtered['Minutes played'] >= min_minutes]
 
     if df_filtered.empty:
-        st.warning("No hay jugadores con esos filtros.")
+        st.warning("⚠️ No hay jugadores que cumplan los filtros.")
     else:
         summary = summarized_metrics[selected_role]
         summary_scores = []
 
-        for i, row in df_filtered.iterrows():
+        for _, row in df_filtered.iterrows():
             cat_scores = {}
             for category, weights in summary.items():
                 score = 0
@@ -183,17 +198,13 @@ if uploaded_file:
                     if pd.notna(value):
                         score += value * weight
                         valid_weights += abs(weight)
-                if valid_weights > 0:
-                    cat_scores[category] = score / valid_weights
-                else:
-                    cat_scores[category] = 0
+                cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
             summary_scores.append((row['Player'], cat_scores))
 
-        # Ordenar por promedio
         summary_scores.sort(key=lambda x: -np.mean(list(x[1].values())))
         top_players = summary_scores[:top_n]
 
-        # Graficar radar
+        # Radar Plot
         fig = go.Figure()
         categories = list(summary.keys())
         for name, values in top_players:
@@ -205,9 +216,12 @@ if uploaded_file:
                 fill='toself',
                 name=name
             ))
+
         fig.update_layout(
             polar=dict(radialaxis=dict(visible=True)),
             title=f"Radar resumido - Top {top_n} {selected_role}s",
             showlegend=True
         )
+
         st.plotly_chart(fig, use_container_width=True)
+
