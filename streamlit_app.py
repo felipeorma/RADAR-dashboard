@@ -30,6 +30,7 @@ def country_to_flag(country):
         "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
         "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
         "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
+    }
     return flags.get(country, country)
 
 # Diccionario que relaciona jugadores con doble nacionalidad y país representado
