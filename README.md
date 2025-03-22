@@ -1,19 +1,67 @@
-# :earth_americas: GDP dashboard template
 
-A simple Streamlit app showing the GDP of different countries in the world.
+# ⚽ Radar Scouting CONMEBOL
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://gdp-dashboard-template.streamlit.app/)
+Aplicación interactiva desarrollada en Streamlit para visualizar jugadores con métricas resumidas por posición, usando radar charts personalizados en español o inglés.
 
-### How to run it on your own machine
+## 📁 Estructura del Proyecto
 
-1. Install the requirements
+```
+📦 radar-scouting-app
+├── app.py                 # Interfaz principal en Streamlit
+├── metrics_config.py      # Métricas por rol (ES/EN)
+├── radar_utils.py         # Funciones de cálculo y visualización
+├── requirements.txt       # Dependencias necesarias
+└── data/                  # (Opcional) Archivos Excel de entrada
+```
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+## 🚀 Cómo ejecutar la app
 
-2. Run the app
+1. Clona este repositorio:
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+```bash
+git clone https://github.com/tuusuario/radar-scouting-app.git
+cd radar-scouting-app
+```
+
+2. Instala las dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Ejecuta la aplicación:
+
+```bash
+streamlit run app.py
+```
+
+## 📊 ¿Qué hace?
+
+- Filtra jugadores por rol, país, minutos y edad.
+- Muestra radar charts interactivos con métricas agrupadas.
+- Visualización clara con colores contrastantes y diseño profesional.
+- Exportación de radar como imagen PNG y ranking como CSV.
+- Soporte en español 🇪🇸 e inglés 🇬🇧.
+
+## 📦 Requisitos
+
+- Python 3.8 o superior
+- Navegador web actualizado
+
+## 📥 Datos de entrada
+
+El archivo Excel debe tener al menos las siguientes columnas:
+
+- `Player`
+- `Position`
+- `Birth country`
+- `Minutes played`
+- `Age`
+- Métricas como: `Goals per 90`, `xG per 90`, `Assists per 90`, etc.
+
+## 👨‍💻 Autor
+
+**Felipe Ormazabal**  
+*Football Scout & Data Analyst*
+
+---
