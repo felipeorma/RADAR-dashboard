@@ -34,6 +34,15 @@ def country_to_flag(country):
     return flags.get(country, country)
 
 dual_nationalities = {
+    # Mostrar banderas + nombres
+    "B. Brereton Díaz": ("Chile", "🇬🇧 England / 🇨🇱 Chile"),
+    "G. Lapadula": ("Peru", "🇮🇹 Italy / 🇵🇪 Peru"),
+    "O. Sonne": ("Peru", "🇩🇰 Denmark / 🇵🇪 Peru"),
+    "E. Morales": ("Bolivia", "🇺🇸 USA / 🇧🇴 Bolivia"),
+    "J. Yeboah": ("Ecuador", "🇩🇪 Germany / 🇪🇨 Ecuador"),
+    "J. Sarmiento": ("Ecuador", "🇬🇧 England / 🇪🇨 Ecuador"),
+    "N. Fonseca": ("Venezuela", "🇮🇹 Italy / 🇻🇪 Venezuela")
+
     "B. Brereton Díaz": ("Chile", "🇬🇧/🇨🇱"),
     "G. Lapadula": ("Peru", "🇮🇹/🇵🇪"),
     "O. Sonne": ("Peru", "🇩🇰/🇵🇪"),
@@ -199,4 +208,5 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
 
