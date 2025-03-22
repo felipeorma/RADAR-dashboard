@@ -223,40 +223,43 @@ if uploaded_file:
         top_players = [(row['Player'], {cat: row[cat] for cat in category_names}) for _, row in top_df.iterrows()]
 
         fig = go.Figure()
-
         # Colores para los jugadores
         colores = ['#00f5d4', '#9b5de5', '#f15bb5', '#fee440', '#00bbf9']
         
-        # Bandera por país (emojis simples, puedes personalizar más luego)
-        banderas = {
-            "Argentina": "🇦🇷", "Brazil": "🇧🇷", "Colombia": "🇨🇴", "Uruguay": "🇺🇾",
-            "Chile": "🇨🇱", "Paraguay": "🇵🇾", "Peru": "🇵🇪", "Ecuador": "🇪🇨",
-            "Venezuela": "🇻🇪", "Bolivia": "🇧🇴"
-        }
+        # Mostrar bandera como código país (porque los emojis fallan en imágenes)
+        def abreviado(pais):
+            codigos = {
+                "Argentina": "ARG", "Brazil": "BRA", "Colombia": "COL", "Uruguay": "URU",
+                "Chile": "CHL", "Paraguay": "PAR", "Peru": "PER", "Ecuador": "ECU",
+                "Venezuela": "VEN", "Bolivia": "BOL"
+            }
+            return codigos.get(pais, pais[:3].upper())
         
         for i, (name, values) in enumerate(top_players):
             jugador_row = df[df['Player'] == name].head(1)
             country = jugador_row['Birth country'].values[0] if not jugador_row.empty else ""
-            bandera = banderas.get(country, "")
-            nombre_con_bandera = f"<span style='color:{colores[i % len(colores)]}'><b>{name} {bandera}</b></span>"
+            cod = abreviado(country)
+            name_label = f"{name} [{cod}]"
         
             r = [values[c] for c in category_names] + [values[category_names[0]]]
             fig.add_trace(go.Scatterpolar(
                 r=r,
                 theta=category_names + [category_names[0]],
                 fill='toself',
-                name=f"{name} {bandera}",
+                name=name_label,
                 line=dict(color=colores[i % len(colores)], width=3),
                 opacity=0.85
             ))
         
         fig.update_layout(
-            title={
-                'text': f"<b>Radar Resumido - Top {top_n} {selected_role}s</b>",
-                'x': 0.5,
-                'xanchor': 'center',
-                'font': dict(color='white', size=22)
-            },
+            title=dict(
+                text=f"<b>Radar Resumido - Top {top_n} {selected_role}s</b>",
+                x=0.5,
+                y=0.95,
+                xanchor='center',
+                yanchor='top',
+                font=dict(color='white', size=22)
+            ),
             polar=dict(
                 bgcolor='rgba(0,0,0,0)',
                 radialaxis=dict(
@@ -275,19 +278,20 @@ if uploaded_file:
             ),
             paper_bgcolor='#0d0d0d',
             plot_bgcolor='#0d0d0d',
-            legend=dict(
-                font=dict(color='white'),
-                bgcolor='rgba(0,0,0,0)',
-                bordercolor='rgba(0,0,0,0)'
-            ),
             showlegend=True,
-            margin=dict(l=40, r=40, t=60, b=60),
+            legend=dict(
+                font=dict(color='white', size=12),
+                orientation='v',
+                x=1,
+                y=1
+            ),
+            margin=dict(l=60, r=60, t=100, b=100),
             annotations=[
                 dict(
                     text="By: Felipe Ormazabal<br>Football Scout - Data Analyst",
                     showarrow=False,
                     x=0.5,
-                    y=-0.15,
+                    y=-0.22,
                     xref="paper",
                     yref="paper",
                     font=dict(color='white', size=12),
