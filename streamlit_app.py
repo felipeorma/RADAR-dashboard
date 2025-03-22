@@ -43,7 +43,7 @@ t = textos[idioma]
 st.title(t['titulo'])
 
 # Cargar archivo desde GitHub
-url_github_excel = "https://github.com/tu_usuario/repositorio/raw/main/data/jugadores.xlsx"  # <-- EDITA AQUÍ
+url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx  # <-- EDITA AQUÍ
 response = requests.get(url_github_excel)
 df = pd.read_excel(BytesIO(response.content))
 
