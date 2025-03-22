@@ -131,7 +131,9 @@ else:
     resumen = summarized_metrics[selected_role]['es' if idioma == 'Español' else 'en']
     df_percentiles, categorias = calcular_percentiles(df_filtered, resumen)
     df_percentiles = df_percentiles.rename(columns={'Promedio': 'ELO'})
-    top_df = df_percentiles.sort_values("ELO", ascending=False).head(top_n)
+    top_df = df_percentiles.sort_values("ELO", ascending=False)
+    tabla_completa = top_df.copy()
+    top_df = top_df.head(top_n)
     top_players = [(row['Player'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
 
     fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma)
@@ -152,7 +154,7 @@ else:
 
     columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']  # Team se mostrará como Club
     columnas_existentes = [col for col in columnas_info if col in df.columns]
-    mostrar = top_df[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
+    mostrar = tabla_completa[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
 
     if 'Birth country' in mostrar.columns:
         mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
@@ -187,4 +189,3 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
