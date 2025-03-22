@@ -118,7 +118,7 @@ else:
     selected_country = 'Todos' if idioma == 'Español' else 'All'
 
 # ⏱️ Filtros adicionales
-min_minutes = st.slider(t['min'], 100, 1500, 500, 100)
+min_minutes = st.slider(t['min'], 0, 1500, 100, 100)
 min_edad = int(df['Age'].min())
 max_edad = int(df['Age'].max())
 rango_edad = st.slider(t['edad'], min_edad, max_edad, (min_edad, max_edad))
