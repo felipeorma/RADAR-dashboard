@@ -168,7 +168,8 @@ else:
         })
         columnas_ordenadas = ['Jugador', 'Edad', 'País', 'Contrato', 'ELO']
 
-    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)        .applymap(lambda v: 'background-color: #d0f0c0;', subset=['ELO'])
+    
+    styled_df = mostrar[columnas_ordenadas].style.format(precision=1)        .applymap(lambda v: 'background-color: #d0f0c0; color: black; font-weight: bold;', subset=['ELO'])
     st.dataframe(styled_df)
 
     st.download_button(t['csv'], mostrar[columnas_ordenadas].to_csv(index=False).encode('utf-8'),
@@ -183,4 +184,3 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
