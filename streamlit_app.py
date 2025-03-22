@@ -2,16 +2,17 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
+from scipy.stats import rankdata
 
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 st.title("📊 Radar Scouting CONMEBOL - Visualización resumida")
 
-uploaded_file = st.file_uploader("Sube tu archivo Excel con datos de jugadores", type=["xlsx"])
+uploaded_file = st.file_uploader("📂 Sube tu archivo Excel con datos de jugadores", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # Keywords para detección de rol
+    # === Configuración de filtros ===
     keywords_by_role = {
         'Goalkeeper': ['GK'],
         'Defender': ['CB', 'RCB', 'LCB'],
@@ -165,13 +166,12 @@ if uploaded_file:
     }
 
     roles = list(summarized_metrics.keys())
-    selected_role = st.selectbox("Selecciona el rol", roles)
+    selected_role = st.selectbox("🔎 Selecciona el rol", roles)
     countries = ['Todos'] + sorted(df['Birth country'].dropna().unique())
-    selected_country = st.selectbox("Filtrar por país", countries)
-    min_minutes = st.slider("Minutos jugados mínimos", 0, 1500, 500, 100)
-    top_n = st.slider("Top jugadores a mostrar", 1, 5, 3)
+    selected_country = st.selectbox("🌎 Filtrar por país", countries)
+    min_minutes = st.slider("⏱️ Minutos jugados mínimos", 0, 1500, 500, 100)
+    top_n = st.slider("🏅 Top jugadores a mostrar", 1, 5, 3)
 
-    # Filtro mejorado por keywords
     def cumple_rol(pos, rol):
         if pd.isna(pos): return False
         keywords = keywords_by_role.get(rol, [])
@@ -201,73 +201,62 @@ if uploaded_file:
                 cat_scores[category] = score / valid_weights if valid_weights > 0 else 0
             summary_scores.append((row['Player'], cat_scores))
 
-        # Convertir cada categoría a percentiles
-        from scipy.stats import rankdata
-        
-        # Preparar tabla para normalizar
+        # Normalizar a percentiles
         category_names = list(summary.keys())
-        category_df = pd.DataFrame([
-            dict(Player=name, **scores) for name, scores in summary_scores
-        ])
-        
-        # Calcular percentiles por columna
+        category_df = pd.DataFrame([dict(Player=name, **scores) for name, scores in summary_scores])
         for cat in category_names:
             values = category_df[cat].values
             category_df[cat] = rankdata(values, method='average') / len(values) * 100
-        
-        # Volver a armar top_players con percentiles
-        top_players = []
-        for _, row in category_df.sort_values(category_names, ascending=False).head(top_n).iterrows():
-            player_name = row['Player']
-            cat_scores = {cat: row[cat] for cat in category_names}
-            top_players.append((player_name, cat_scores))
 
-        # ✅ Arreglar esto: definir categorías
-        categories = list(summary.keys())
+        # Reordenar y seleccionar top N
+        category_df['Promedio'] = category_df[category_names].mean(axis=1)
+        top_df = category_df.sort_values('Promedio', ascending=False).head(top_n)
+        top_players = [(row['Player'], {cat: row[cat] for cat in category_names}) for _, row in top_df.iterrows()]
 
-        # Radar Plot
+        # Radar
         fig = go.Figure()
-
-        # Paleta de colores vibrantes
         colores = ['#FF4B91', '#FF884B', '#4BCFFA', '#B15EFF', '#3AE37B']
-        
         for i, (name, values) in enumerate(top_players):
-            r = [values[c] for c in categories]
-            r += [r[0]]  # cerrar el radar
+            r = [values[c] for c in category_names] + [values[category_names[0]]]
             fig.add_trace(go.Scatterpolar(
                 r=r,
-                theta=categories + [categories[0]],
+                theta=category_names + [category_names[0]],
                 fill='toself',
                 name=name,
                 line=dict(color=colores[i % len(colores)], width=2),
                 opacity=0.8
             ))
-        
+
         fig.update_layout(
             polar=dict(
                 bgcolor='rgba(0,0,0,0)',
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(1.0, max([max(v[1].values()) for v in top_players]))],
-                    showline=False,
-                    ticks='',
-                    showticklabels=False,
-                    gridcolor='lightgray',
-                ),
-                angularaxis=dict(
-                    tickfont=dict(size=13, color='gray'),
-                    rotation=90,
-                    direction='clockwise'
-                )
+                radialaxis=dict(visible=True, range=[0, 100], showticklabels=False, ticks=''),
+                angularaxis=dict(tickfont=dict(size=13), direction='clockwise')
             ),
-            plot_bgcolor='white',
             paper_bgcolor='white',
             showlegend=True,
-            title=dict(
-                text=f"<b>Radar resumido - Top {top_n} {selected_role}s</b>",
-                font=dict(size=20)
-            ),
-            margin=dict(l=40, r=40, t=80, b=40)
+            margin=dict(l=40, r=40, t=50, b=40),
+            title=f"<b>Radar resumido - Top {top_n} {selected_role}s</b>"
         )
-        
+
         st.plotly_chart(fig, use_container_width=True)
+
+        # Mostrar tabla
+        st.markdown("### 📋 Tabla de percentiles")
+        st.dataframe(top_df.set_index('Player')[category_names + ['Promedio']].round(1))
+
+        # Botón para exportar CSV
+        csv = top_df.to_csv(index=False).encode('utf-8')
+        st.download_button("⬇️ Descargar tabla en CSV", csv, "ranking_percentiles.csv", "text/csv")
+
+        # Botón para exportar imagen
+        try:
+            st.download_button(
+                label="🖼️ Descargar radar como imagen PNG",
+                data=fig.to_image(format="png"),
+                file_name="radar.png",
+                mime="image/png"
+            )
+        except Exception as e:
+            st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
