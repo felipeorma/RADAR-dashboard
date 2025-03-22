@@ -1,4 +1,3 @@
-
 # streamlit_app.py
 
 import streamlit as st
@@ -8,14 +7,14 @@ from io import BytesIO
 from metrics_config import summarized_metrics
 from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
-# Configuración de página
+# Configurar la página
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
-# Estilos visuales
+# Estilos globales y ocultar elementos de Streamlit
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-        html, body, [class*="css"]  {
+        html, body, [class*="css"] {
             font-family: 'Poppins', sans-serif;
         }
         #MainMenu {visibility: hidden;}
@@ -24,7 +23,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Bandera + país
+# Diccionario de banderas
 def country_to_flag(country):
     flags = {
         "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
@@ -33,7 +32,7 @@ def country_to_flag(country):
     }
     return flags.get(country, country)
 
-# Texto multilenguaje
+# Idioma y textos
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
 textos = {
@@ -64,20 +63,18 @@ textos = {
 }
 t = textos[idioma]
 
-# Mostrar logo
+# Logo CONMEBOL
 st.image("https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png", width=100)
-
 st.title(t['titulo'])
 
-# Cargar archivo Excel desde GitHub
-url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
-response = requests.get(url_github_excel)
-df = pd.read_excel(BytesIO(response.content))
+# Cargar datos
+url = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
+df = pd.read_excel(BytesIO(requests.get(url).content))
 
-# Crear identificador único por jugador + club
-df["UniqueID"] = df["Player"] + " (" + df["Team"] + ")"
+# ID único jugador-club
+df['UniqueID'] = df['Player'] + ' - ' + df['Team']
 
-# Diccionario de roles por keywords
+# Roles por keywords
 keywords_by_role = {
     'Goalkeeper': ['GK'],
     'Defender': ['CB', 'RCB', 'LCB'],
@@ -97,56 +94,53 @@ roles_map = {
     'Forward': {'es': 'Delantero', 'en': 'Forward'}
 }
 
-roles_display = [roles_map[role]['es'] if idioma == 'Español' else roles_map[role]['en'] for role in roles_map]
+# Selector de rol
+roles_display = [roles_map[r]['es'] if idioma == 'Español' else roles_map[r]['en'] for r in roles_map]
 rol_display = st.selectbox(t['rol'], roles_display)
-
-for role_key, traducciones in roles_map.items():
-    if traducciones['es' if idioma == 'Español' else 'en'] == rol_display:
-        selected_role = role_key
-        translated_role = traducciones['es' if idioma == 'Español' else 'en']
+for k, v in roles_map.items():
+    if rol_display == v['es' if idioma == 'Español' else 'en']:
+        selected_role = k
+        translated_role = v['es' if idioma == 'Español' else 'en']
         break
 
 # Filtros
-if 'Birth country' in df.columns:
-    countries = ['Todos' if idioma == 'Español' else 'All'] + sorted(df['Birth country'].dropna().unique())
-    selected_country = st.selectbox(t['pais'], countries)
-else:
-    selected_country = 'Todos' if idioma == 'Español' else 'All'
-
+countries = ['Todos' if idioma == 'Español' else 'All'] + sorted(df['Birth country'].dropna().unique())
+selected_country = st.selectbox(t['pais'], countries)
 min_minutes = st.slider(t['min'], 0, 1500, 100, 100)
-
-if 'Age' in df.columns:
-    min_edad = int(df['Age'].min())
-    max_edad = int(df['Age'].max())
-    rango_edad = st.slider(t['edad'], min_edad, max_edad, (min_edad, max_edad))
-else:
-    rango_edad = (0, 100)
-
+min_age, max_age = int(df['Age'].min()), int(df['Age'].max())
+rango_edad = st.slider(t['edad'], min_age, max_age, (min_age, max_age))
 top_n = st.slider(t['top'], 1, 5, 3)
 
-# Filtrado de datos
-df_filtered = df[df['Position'].apply(lambda x: cumple_rol(str(x).split(',')[0].strip(), selected_role, keywords_by_role))]
+# Filtrado general
+df_general = df[df['Position'].apply(lambda x: cumple_rol(str(x).split(',')[0].strip(), selected_role, keywords_by_role))]
+df_general = df_general[df_general['Minutes played'] >= 0]  # todos para ELO
 
-if selected_country not in ['Todos', 'All'] and 'Birth country' in df.columns:
-    df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
+# Cálculo de percentiles ELO sobre el total
+resumen = summarized_metrics[selected_role]['es' if idioma == 'Español' else 'en']
+df_percentiles, categorias = calcular_percentiles(df_general, resumen, unique_col="UniqueID")
+df_percentiles = df_percentiles.rename(columns={'Promedio': 'ELO'})
 
-df_filtered = df_filtered[
-    (df_filtered['Minutes played'] >= min_minutes) &
-    (df_filtered['Age'].between(rango_edad[0], rango_edad[1]))
+# Aplicar filtros de usuario
+df_filtros = df_general[
+    (df_general['Minutes played'] >= min_minutes) &
+    (df_general['Age'].between(rango_edad[0], rango_edad[1]))
 ]
+if selected_country not in ['Todos', 'All']:
+    df_filtros = df_filtros[df_filtros['Birth country'] == selected_country]
 
-if df_filtered.empty:
+# Unir con ELO
+df_filtros = df_filtros.merge(df_percentiles[['UniqueID', 'ELO'] + categorias], on="UniqueID", how="left")
+
+# Validación
+if df_filtros.empty:
     st.warning(t['no_data'])
 else:
-    resumen = summarized_metrics[selected_role]['es' if idioma == 'Español' else 'en']
-    df_percentiles, categorias = calcular_percentiles(df_filtered, resumen, unique_col="UniqueID")
-    df_percentiles = df_percentiles.rename(columns={'Promedio': 'ELO'})
-    top_df = df_percentiles.sort_values("ELO", ascending=False).head(top_n)
+    # Radar con TOP N
+    top_df = df_filtros.sort_values("ELO", ascending=False).drop_duplicates("UniqueID").head(top_n)
     top_players = [(row['UniqueID'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
-
-    # Radar
     fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma, id_column="UniqueID")
 
+    # Logo dentro del radar
     fig.update_layout(images=[dict(
         source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
@@ -162,25 +156,30 @@ else:
     st.markdown(t['tabla'])
 
     columnas_info = ['Player', 'Team', 'Age', 'Birth country', 'Contract expires']
-    mostrar = df_percentiles.merge(df[columnas_info + ['UniqueID']], on="UniqueID", how="left").drop_duplicates("UniqueID")
+    columnas_final = ['Player', 'Team', 'Age', 'Birth country', 'Contract expires', 'ELO']
+    tabla = df_filtros[columnas_info + ['UniqueID', 'ELO']].drop_duplicates('UniqueID')
 
-    if 'Birth country' in mostrar.columns:
-        mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
+    if 'Birth country' in tabla.columns:
+        tabla['Birth country'] = tabla['Birth country'].apply(country_to_flag)
 
-    mostrar = mostrar.rename(columns={
-        'Player': 'Jugador', 'Team': 'Club', 'Age': 'Edad',
-        'Birth country': 'País', 'Contract expires': 'Contrato'
-    }) if idioma == 'Español' else mostrar
+    if idioma == 'Español':
+        tabla = tabla.rename(columns={
+            'Player': 'Jugador', 'Team': 'Club', 'Age': 'Edad',
+            'Birth country': 'País', 'Contract expires': 'Contrato'
+        })
+        columnas_final = ['Jugador', 'Club', 'Edad', 'País', 'Contrato', 'ELO']
 
-    columnas_final = ['Jugador' if idioma == 'Español' else 'Player',
-                      'Club' if idioma == 'Español' else 'Team',
-                      'Edad' if idioma == 'Español' else 'Age',
-                      'País' if idioma == 'Español' else 'Birth country',
-                      'Contrato' if idioma == 'Español' else 'Contract expires',
-                      'ELO']
+    st.dataframe(tabla[columnas_final].set_index(columnas_final[0]))
 
-    st.dataframe(mostrar[columnas_final].set_index(columnas_final[0]))
-
-    st.download_button(t['csv'], mostrar[columnas_final].to_csv(index=False).encode('utf-8'),
+    st.download_button(t['csv'], tabla[columnas_final].to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
+    try:
+        st.download_button(
+            label=t['png'],
+            data=fig.to_image(format="png"),
+            file_name="radar.png",
+            mime="image/png"
+        )
+    except Exception:
+        st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
