@@ -14,7 +14,7 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
     keywords_by_role = {
-        'Goalkeepe': ['GK'],
+        'Goalkeeper': ['GK'],
         'Defender': ['CB', 'RCB', 'LCB'],
         'Fullback': ['LB', 'RB', 'LWB', 'RWB'],
         'Midfielder': ['CMF', 'DMF', 'AMF', 'LMF', 'RMF'],
