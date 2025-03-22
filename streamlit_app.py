@@ -1,5 +1,5 @@
 
-# app.py
+# streamlit_app.py
 
 import streamlit as st
 import pandas as pd
@@ -12,7 +12,7 @@ idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
 textos = {
     'Español': {
-        'titulo': "📊 Radar Scouting Basico- Visualización resumida",
+        'titulo': "📊 Radar Scouting Básico - Visualización resumida",
         'sube': "📂 Sube tu archivo Excel con datos de jugadores",
         'rol': "🔎 Selecciona el rol",
         'pais': "🌎 Filtrar por país",
@@ -57,25 +57,28 @@ if uploaded_file:
     }
 
     roles_map = {
-        'Goalkeeper': 'Portero',
-        'Defender': 'Defensor',
-        'Fullback': 'Lateral',
-        'Midfielder': 'Mediocampista',
-        'Wingers': 'Extremo',
-        'Forward': 'Delantero'
+        'Goalkeeper': {'es': 'Portero', 'en': 'Goalkeeper'},
+        'Defender': {'es': 'Defensor', 'en': 'Defender'},
+        'Fullback': {'es': 'Lateral', 'en': 'Fullback'},
+        'Midfielder': {'es': 'Mediocampista', 'en': 'Midfielder'},
+        'Wingers': {'es': 'Extremo', 'en': 'Winger'},
+        'Forward': {'es': 'Delantero', 'en': 'Forward'}
     }
-    
-    # Según idioma
-    roles_display = list(roles_map.values()) if idioma == 'Español' else list(roles_map.keys())
-    
-    # Selectbox al usuario
-    selected_role_display = st.selectbox(t['rol'], roles_display)
-    
-    # Invertimos el dict para volver a la clave original
-    reverse_map = {v: k for k, v in roles_map.items()}
-    selected_role = reverse_map.get(selected_role_display, selected_role_display)
-    countries = ['Todos' if idioma == 'Español' else 'All'] + sorted(df['Birth country'].dropna().unique())
-    selected_country = st.selectbox(t['pais'], countries)
+
+    roles_display = [roles_map[role]['es'] if idioma == 'Español' else roles_map[role]['en'] for role in roles_map]
+    rol_display = st.selectbox(t['rol'], roles_display)
+
+    for role_key, traducciones in roles_map.items():
+        if traducciones['es' if idioma == 'Español' else 'en'] == rol_display:
+            selected_role = role_key
+            break
+
+    if 'Birth country' in df.columns:
+        countries = ['Todos' if idioma == 'Español' else 'All'] + sorted(df['Birth country'].dropna().unique())
+        selected_country = st.selectbox(t['pais'], countries)
+    else:
+        selected_country = 'Todos' if idioma == 'Español' else 'All'
+
     min_minutes = st.slider(t['min'], 0, 1500, 500, 100)
 
     if 'Age' in df.columns:
@@ -88,8 +91,10 @@ if uploaded_file:
     top_n = st.slider(t['top'], 1, 5, 3)
 
     df_filtered = df[df['Position'].apply(lambda x: cumple_rol(x, selected_role, keywords_by_role))]
-    if selected_country not in ['Todos', 'All']:
+
+    if selected_country not in ['Todos', 'All'] and 'Birth country' in df.columns:
         df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
+
     df_filtered = df_filtered[
         (df_filtered['Minutes played'] >= min_minutes) &
         (df_filtered['Age'].between(rango_edad[0], rango_edad[1]))
@@ -98,7 +103,7 @@ if uploaded_file:
     if df_filtered.empty:
         st.warning(t['no_data'])
     else:
-        resumen = summarized_metrics[selected_role][ 'es' if idioma == 'Español' else 'en' ]
+        resumen = summarized_metrics[selected_role]['es' if idioma == 'Español' else 'en']
         df_percentiles, categorias = calcular_percentiles(df_filtered, resumen)
         top_df = df_percentiles.sort_values("Promedio", ascending=False).head(top_n)
         top_players = [(row['Player'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
@@ -121,3 +126,4 @@ if uploaded_file:
             )
         except Exception:
             st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
+
