@@ -206,22 +206,47 @@ if uploaded_file:
 
         # Radar Plot
         fig = go.Figure()
-        categories = list(summary.keys())
-        for name, values in top_players:
-            r = [values[c] for c in categories]
-            r += [r[0]]
-            fig.add_trace(go.Scatterpolar(
-                r=r,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=name
-            ))
 
-        fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True)),
-            title=f"Radar resumido - Top {top_n} {selected_role}s",
-            showlegend=True
+# Paleta de colores vibrantes
+colores = ['#FF4B91', '#FF884B', '#4BCFFA', '#B15EFF', '#3AE37B']
+
+for i, (name, values) in enumerate(top_players):
+    r = [values[c] for c in categories]
+    r += [r[0]]  # cerrar el radar
+    fig.add_trace(go.Scatterpolar(
+        r=r,
+        theta=categories + [categories[0]],
+        fill='toself',
+        name=name,
+        line=dict(color=colores[i % len(colores)], width=2),
+        opacity=0.8
+    ))
+
+fig.update_layout(
+    polar=dict(
+        bgcolor='rgba(0,0,0,0)',
+        radialaxis=dict(
+            visible=True,
+            range=[0, max(1.0, max([max(v[1].values()) for v in top_players]))],
+            showline=False,
+            ticks='',
+            showticklabels=False,
+            gridcolor='lightgray',
+        ),
+        angularaxis=dict(
+            tickfont=dict(size=13, color='gray'),
+            rotation=90,
+            direction='clockwise'
         )
+    ),
+    plot_bgcolor='white',
+    paper_bgcolor='white',
+    showlegend=True,
+    title=dict(
+        text=f"<b>Radar resumido - Top {top_n} {selected_role}s</b>",
+        font=dict(size=20)
+    ),
+    margin=dict(l=40, r=40, t=80, b=40)
+)
 
-        st.plotly_chart(fig, use_container_width=True)
-
+st.plotly_chart(fig, use_container_width=True)
