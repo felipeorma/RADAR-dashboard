@@ -1,5 +1,5 @@
 
-# streamlit_app.py
+# Este es el archivo principal de la aplicación Streamlit para visualizar datos de jugadores CONMEBOL
 
 import streamlit as st
 import pandas as pd
@@ -10,7 +10,7 @@ from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
-# Ocultar menú Streamlit y usar fuente moderna
+# Se aplica estilo CSS para ocultar elementos de Streamlit y usar una fuente moderna
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -34,7 +34,7 @@ def country_to_flag(country):
     return flags.get(country, country)
 
 dual_nationalities = {
-    # Mostrar banderas + nombres
+    # Diccionario que relaciona jugadores con doble nacionalidad y cómo deben mostrarse sus banderas y países
     "B. Brereton Díaz": ("Chile", "🇬🇧 England / 🇨🇱 Chile"),
     "G. Lapadula": ("Peru", "🇮🇹 Italy / 🇵🇪 Peru"),
     "O. Sonne": ("Peru", "🇩🇰 Denmark / 🇵🇪 Peru"),
@@ -137,7 +137,7 @@ top_n = st.slider(t['top'], 1, 5, 3)
 df['Main Position'] = df['Position'].apply(lambda x: str(x).split(',')[0].strip())
 df_filtered = df[df['Main Position'].apply(lambda x: cumple_rol(x, selected_role, keywords_by_role))]
 
-# Incluir jugadores con nacionalidad representada (dual)
+# Se asegura que jugadores con nacionalidad dual también sean incluidos en el país que representan
 if selected_country not in ['Todos', 'All']:
     df_filtered = df_filtered[(df_filtered['Birth country'] == selected_country) |
                               (df_filtered['Player'].isin([p for p, (rep, _) in dual_nationalities.items() if rep == selected_country]))]
