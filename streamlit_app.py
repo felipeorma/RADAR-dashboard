@@ -10,9 +10,9 @@ from radar_utils import cumple_rol, calcular_percentiles, generar_radar
 
 def country_to_flag(country):
     flags = {
-        "Argentina": "🇦🇷", "Brazil": "🇧🇷", "Colombia": "🇨🇴", "Uruguay": "🇺🇾",
-        "Chile": "🇨🇱", "Paraguay": "🇵🇾", "Peru": "🇵🇪", "Ecuador": "🇪🇨",
-        "Venezuela": "🇻🇪", "Bolivia": "🇧🇴"
+        "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
+        "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
+        "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
     }
     return flags.get(country, country)
 
@@ -157,4 +157,3 @@ else:
         )
     except Exception:
         st.info("Para exportar imagen, instala `kaleido`: pip install kaleido")
-
