@@ -42,7 +42,6 @@ t = textos[idioma]
 
 st.title(t['titulo'])
 
-# Cargar archivo desde GitHub
 url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
 response = requests.get(url_github_excel)
 df = pd.read_excel(BytesIO(response.content))
@@ -71,6 +70,7 @@ rol_display = st.selectbox(t['rol'], roles_display)
 for role_key, traducciones in roles_map.items():
     if traducciones['es' if idioma == 'Español' else 'en'] == rol_display:
         selected_role = role_key
+        translated_role = traducciones['es' if idioma == 'Español' else 'en']
         break
 
 if 'Birth country' in df.columns:
@@ -109,17 +109,18 @@ else:
     top_df = df_percentiles.sort_values("ELO", ascending=False).head(top_n)
     top_players = [(row['Player'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
 
-    fig = generar_radar(top_players, df, categorias, selected_role, top_n, idioma)
+    fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma)
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown(t['tabla'])
 
     columnas_info = ['Player', 'Team', 'Age', 'Value', 'Contract expires', 'ELO']
-    columnas_info = [col for col in columnas_info if col in top_df.columns]
+    columnas_info = [col for col in columnas_info if col in df.columns] + ['ELO']
+    mostrar = top_df.merge(df[columnas_info].drop_duplicates('Player'), on='Player', how='left')
+    mostrar = mostrar[['Player'] + [col for col in columnas_info if col != 'Player']]
+    st.dataframe(mostrar.set_index("Player").round(1))
 
-    st.dataframe(top_df[columnas_info].set_index("Player").round(1))
-
-    st.download_button(t['csv'], top_df[columnas_info].to_csv(index=False).encode('utf-8'),
+    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
