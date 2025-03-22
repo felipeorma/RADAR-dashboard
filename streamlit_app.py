@@ -224,7 +224,11 @@ if uploaded_file:
 
         fig = go.Figure()
         # Colores para los jugadores
-        colores = ['#00f5d4', '#9b5de5', '#f15bb5', '#fee440', '#00bbf9']
+        colores = ['#00FFFF',  # Cian
+           '#FF6F61',  # Coral/Rojo
+           '#6A5ACD',  # Azul violeta fuerte
+           '#FFD700',  # Amarillo fuerte
+           '#00FF7F']  # Verde neón
         
         # Mostrar bandera como código país (porque los emojis fallan en imágenes)
         def abreviado(pais):
