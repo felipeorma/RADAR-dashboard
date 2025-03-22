@@ -76,7 +76,7 @@ keywords_by_role = {
     'Defender': ['CB', 'RCB', 'LCB'],
     'Fullback': ['LB', 'RB', 'LWB', 'RWB'],
     'Midfielder': ['CMF', 'DMF', 'AMF', 'LMF', 'RMF'],
-    'Wingers': ['LW', 'RW', 'LAMF', 'RAMF'],
+    'Wingers': ['LW', 'LWF', 'RWF', 'RW', 'LAMF', 'RAMF'],
     'Forward': ['CF', 'ST', 'SS']
 }
 
