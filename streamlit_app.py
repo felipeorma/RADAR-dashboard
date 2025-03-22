@@ -127,12 +127,12 @@ else:
 
     st.markdown(t['tabla'])
 
-    columnas_info = ['Player', 'Team', 'Age', 'Value', 'Contract expires', 'ELO']
+    columnas_info = ['Team', 'Age', 'Value', 'Contract expires']
     columnas_existentes = [col for col in columnas_info if col in df.columns]
-    merged = df_percentiles[['Player', 'ELO']].merge(df[columnas_existentes + ['Player']], on='Player', how='left')
-    st.dataframe(merged.set_index("Player").round(1))
+    mostrar = top_df[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
+    st.dataframe(mostrar.set_index("Player").round(1))
 
-    st.download_button(t['csv'], merged.to_csv(index=False).encode('utf-8'),
+    st.download_button(t['csv'], mostrar.to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
 
     try:
