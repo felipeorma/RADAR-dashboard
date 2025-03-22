@@ -127,7 +127,7 @@ else:
 
     st.markdown(t['tabla'])
 
-    columnas_info = ['Team', 'Age', 'Value', 'Contract expires']
+    columnas_info = ['Birth country''Team', 'Age', 'Value', 'Contract expires']
     columnas_existentes = [col for col in columnas_info if col in df.columns]
     mostrar = top_df[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
     st.dataframe(mostrar.set_index("Player").round(1))
