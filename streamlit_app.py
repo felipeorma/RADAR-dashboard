@@ -16,6 +16,16 @@ def country_to_flag(country):
     }
     return flags.get(country, country)
 
+
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
+
 st.set_page_config(page_title="Radar Scouting CONMEBOL", layout="wide")
 
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
