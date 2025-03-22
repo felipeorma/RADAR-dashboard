@@ -29,18 +29,18 @@ def country_to_flag(country):
     flags = {
         "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
         "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
-        "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
+        "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia", "England": "🇬🇧 England"
     }
     return flags.get(country, country)
 
 dual_nationalities = {
-    "B. Brereton Díaz": "🇬🇧/🇨🇱",
-    "G. Lapadula": "🇮🇹/🇵🇪",
-    "O. Sonne": "🇩🇰/🇵🇪",
-    "E. Morales": "🇺🇸/🇧🇴",
-    "J. Yeboah": "🇩🇪/🇪🇨",
-    "J. Sarmiento": "🇬🇧/🇪🇨",
-    "N. Fonseca": "🇮🇹/🇻🇪"
+    "B. Brereton Díaz": ("Chile", "🇬🇧/🇨🇱"),
+    "G. Lapadula": ("Peru", "🇮🇹/🇵🇪"),
+    "O. Sonne": ("Peru", "🇩🇰/🇵🇪"),
+    "E. Morales": ("Bolivia", "🇺🇸/🇧🇴"),
+    "J. Yeboah": ("Ecuador", "🇩🇪/🇪🇨"),
+    "J. Sarmiento": ("Ecuador", "🇬🇧/🇪🇨"),
+    "N. Fonseca": ("Venezuela", "🇮🇹/🇻🇪")
 }
 
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
@@ -74,7 +74,6 @@ textos = {
 t = textos[idioma]
 
 st.image("https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png", width=100)
-
 st.title(t['titulo'])
 
 url_github_excel = "https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/CONMEBOL%20QUALI.xlsx"
@@ -125,10 +124,13 @@ else:
 
 top_n = st.slider(t['top'], 1, 5, 3)
 
-df_filtered = df[df['Position'].apply(lambda x: cumple_rol(str(x).split(',')[0].strip(), selected_role, keywords_by_role))]
+df['Main Position'] = df['Position'].apply(lambda x: str(x).split(',')[0].strip())
+df_filtered = df[df['Main Position'].apply(lambda x: cumple_rol(x, selected_role, keywords_by_role))]
 
-if selected_country not in ['Todos', 'All'] and 'Birth country' in df.columns:
-    df_filtered = df_filtered[df_filtered['Birth country'] == selected_country]
+# Incluir jugadores con nacionalidad representada (dual)
+if selected_country not in ['Todos', 'All']:
+    df_filtered = df_filtered[(df_filtered['Birth country'] == selected_country) |
+                              (df_filtered['Player'].isin([p for p, (rep, _) in dual_nationalities.items() if rep == selected_country]))]
 
 df_filtered = df_filtered[
     (df_filtered['Minutes played'] >= min_minutes) &
@@ -147,7 +149,6 @@ else:
     top_players = [(row['Player'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
 
     fig = generar_radar(top_players, df, categorias, translated_role, top_n, idioma)
-
     fig.update_layout(images=[dict(
         source="https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png",
         xref="paper", yref="paper",
@@ -159,19 +160,14 @@ else:
     )])
 
     st.plotly_chart(fig, use_container_width=True)
-
     st.markdown(t['tabla'])
 
     columnas_info = ['Team', 'Age', 'Value', 'Contract expires', 'Birth country']
     columnas_existentes = [col for col in columnas_info if col in df.columns]
     mostrar = tabla_completa[['Player', 'ELO']].merge(df[['Player'] + columnas_existentes], on='Player', how='left')
 
-    if 'Birth country' in mostrar.columns:
-        mostrar['Birth country'] = mostrar['Birth country'].apply(country_to_flag)
-
-    # Reemplazar país por nacionalidad dual si aplica
     mostrar['Birth country'] = mostrar.apply(
-        lambda row: dual_nationalities.get(row['Player'], row['Birth country']),
+        lambda row: dual_nationalities.get(row['Player'], (None, None))[1] or country_to_flag(row['Birth country']),
         axis=1
     )
 
