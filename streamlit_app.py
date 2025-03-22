@@ -12,7 +12,7 @@ idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
 
 textos = {
     'Español': {
-        'titulo': "📊 Radar Scouting CONMEBOL - Visualización resumida",
+        'titulo': "📊 Radar Scouting Basico- Visualización resumida",
         'sube': "📂 Sube tu archivo Excel con datos de jugadores",
         'rol': "🔎 Selecciona el rol",
         'pais': "🌎 Filtrar por país",
