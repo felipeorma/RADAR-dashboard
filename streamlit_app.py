@@ -181,9 +181,11 @@ if uploaded_file:
     top_n = st.slider("🏅 Top jugadores a mostrar", 1, 5, 3)
 
     def cumple_rol(pos, rol):
-        if pd.isna(pos): return False
+        if pd.isna(pos):
+            return False
         keywords = keywords_by_role.get(rol, [])
-        return any(k in pos for k in keywords)
+        pos_principal = str(pos).split(',')[0].strip()
+        return pos_principal in keywords
 
     df_filtered = df[df['Position'].apply(lambda x: cumple_rol(x, selected_role))]
     if selected_country != 'Todos':
