@@ -30,7 +30,6 @@ def country_to_flag(country):
         "Argentina": "🇦🇷 Argentina", "Brazil": "🇧🇷 Brazil", "Colombia": "🇨🇴 Colombia", "Uruguay": "🇺🇾 Uruguay",
         "Chile": "🇨🇱 Chile", "Paraguay": "🇵🇾 Paraguay", "Peru": "🇵🇪 Peru", "Ecuador": "🇪🇨 Ecuador",
         "Venezuela": "🇻🇪 Venezuela", "Bolivia": "🇧🇴 Bolivia"
-    }
     return flags.get(country, country)
 
 # Diccionario que relaciona jugadores con doble nacionalidad y país representado
@@ -41,7 +40,6 @@ def country_to_flag(country):
     "J. Yeboah": ("Ecuador", "🇩🇪 Germany / 🇪🇨 Ecuador"),
     "J. Sarmiento": ("Ecuador", "🇬🇧 England / 🇪🇨 Ecuador"),
     "N. Fonseca": ("Venezuela", "🇮🇹 Italy / 🇻🇪 Venezuela")
-}
 
 
 idioma = st.sidebar.radio("🌐 Idioma / Language", ['Español', 'English'])
@@ -70,8 +68,6 @@ textos = {
         'tabla': "### 📋 Player Table",
         'csv': "⬇️ Download table as CSV",
         'png': "🖼️ Download radar as PNG image"
-    }
-}
 t = textos[idioma]
 
 st.image("https://raw.githubusercontent.com/felipeorma/RADAR-dashboard/main/data/images/CONMEBOL_logo.png", width=100)
@@ -89,7 +85,6 @@ keywords_by_role = {
     'Midfielder': ['CMF', 'DMF', 'AMF', 'LMF', 'RMF'],
     'Wingers': ['LW', 'LWF', 'RWF', 'RW', 'LAMF', 'RAMF'],
     'Forward': ['CF', 'ST', 'SS']
-}
 
 roles_map = {
     'Goalkeeper': {'es': 'Portero', 'en': 'Goalkeeper'},
@@ -98,7 +93,6 @@ roles_map = {
     'Midfielder': {'es': 'Mediocampista', 'en': 'Midfielder'},
     'Wingers': {'es': 'Extremo', 'en': 'Winger'},
     'Forward': {'es': 'Delantero', 'en': 'Forward'}
-}
 
 roles_display = [roles_map[role]['es'] if idioma == 'Español' else roles_map[role]['en'] for role in roles_map]
 rol_display = st.selectbox(t['rol'], roles_display)
