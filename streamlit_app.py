@@ -156,7 +156,19 @@ else:
         layer="above"
     )])
 
+
     st.plotly_chart(fig, use_container_width=True)
+
+    # 👇 Aquí va el botón para descargar la imagen del radar
+    try:
+        st.download_button(
+            label=t['png'],
+            data=fig.to_image(format="png"),
+            file_name="radar.png",
+            mime="image/png"
+        )
+    except Exception:
+        st.info("⚠️ Para exportar imagen, instala `kaleido`: pip install kaleido")
 
     st.markdown(t['tabla'])
 
