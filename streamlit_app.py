@@ -191,6 +191,8 @@ else:
                       'Contrato' if idioma == 'Español' else 'Contract expires',
                       'ELO']
 
+    mostrar = mostrar.sort_values("ELO", ascending=False)
+
     styled = mostrar[columnas_final].style \
         .format(precision=1) \
         .applymap(lambda v: 'background-color: #DDEBFF; color: black; font-weight: bold;', subset=['ELO'])
