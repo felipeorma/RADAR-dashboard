@@ -11,16 +11,14 @@ def cumple_rol(posicion, rol, keywords_by_role):
     primera_pos = str(posicion).split(',')[0].strip()
     return any(keyword in primera_pos for keyword in keywords_by_role.get(rol, []))
 
-# Esta función calcula los percentiles de todos los jugadores del dataset original,
-# y luego devuelve únicamente los jugadores que están en el dataframe filtrado.
-# Así los percentiles y ELO no se distorsionan aunque se apliquen filtros visuales.
+# Esta función calcula los percentiles de los jugadores con base en las métricas resumidas
+# Se usa siempre el dataframe completo para evitar distorsión al aplicar filtros
 
-def calcular_percentiles(df_filtrado, resumen_metricas, df_completo=None, unique_col="Player"):
-    df_base = df_completo if df_completo is not None else df_filtrado.copy()
+def calcular_percentiles(df_completo, resumen_metricas, unique_col="Player"):
     nombres_categorias = list(resumen_metricas.keys())
     data = []
 
-    for _, fila in df_base.iterrows():
+    for _, fila in df_completo.iterrows():
         jugador = fila[unique_col]
         resultados = {unique_col: jugador}
         for categoria, pesos in resumen_metricas.items():
@@ -41,12 +39,6 @@ def calcular_percentiles(df_filtrado, resumen_metricas, df_completo=None, unique
         df_resultados[categoria] = rankdata(valores, method='average') / len(valores) * 100
 
     df_resultados['Promedio'] = df_resultados[nombres_categorias].mean(axis=1)
-
-    # Filtramos el resultado final si se pasó un df filtrado
-    if df_filtrado is not None:
-        ids_filtrados = df_filtrado[unique_col].unique()
-        df_resultados = df_resultados[df_resultados[unique_col].isin(ids_filtrados)].copy()
-
     return df_resultados, nombres_categorias
 
 # Esta función genera un radar chart en Plotly para los jugadores seleccionados
@@ -85,8 +77,8 @@ def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma, id
             opacity=0.85
         ))
 
-    # Título dinámico con salto de línea
-    titulo = f"Radar Scouting CONMEBOL<br>Top {top_n} {rol}s" if idioma == 'English' else f"Radar Scouting CONMEBOL<br>Top {top_n} {rol}s"
+    # Título dinámico
+    titulo = f"Radar Scouting CONMEBOL - Top {top_n} {rol}s" if idioma == 'English' else f"Radar Scouting CONMEBOL - Top {top_n} {rol}s"
 
     fig.update_layout(
         title=dict(
