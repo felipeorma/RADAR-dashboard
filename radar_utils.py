@@ -77,8 +77,8 @@ def generar_radar(jugadores_top, df_original, categorias, rol, top_n, idioma, id
             opacity=0.85
         ))
 
-    # Título dinámico
-    titulo = f"Radar Scouting CONMEBOL - Top {top_n} {rol}s" if idioma == 'English' else f"Radar Scouting CONMEBOL - Top {top_n} {rol}s"
+    # Título dinámico con salto de línea
+    titulo = f"Radar Scouting CONMEBOL<br>Top {top_n} {rol}s" if idioma == 'English' else f"Radar Scouting CONMEBOL<br>Top {top_n} {rol}s"
 
     fig.update_layout(
         title=dict(
