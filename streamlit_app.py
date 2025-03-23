@@ -195,6 +195,11 @@ else:
             'Player': 'Jugador', 'Team': 'Club', 'Age': 'Edad',
             'Birth country': 'País', 'Contract expires': 'Contrato'
         })
+    else:
+        mostrar = mostrar.rename(columns={
+            'Birth country': 'Country'
+        })
+
 
     columnas_final = ['Jugador' if idioma == 'Español' else 'Player',
                       'Club' if idioma == 'Español' else 'Team',
