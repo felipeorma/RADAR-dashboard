@@ -45,8 +45,7 @@ textos = {
         'no_data': "⚠️ No hay jugadores que cumplan los filtros.",
         'tabla': "### 📋 Tabla de jugadores",
         'csv': "⬇️ Descargar tabla en CSV",
-        'png': "🖼️ Descargar radar como imagen PNG",
-        'firma': "<div style='text-align:center; font-size:13px; color:gray;'>By: Felipe Ormazabal - Football Scout & Data Analyst</div>"
+        'png': "🖼️ Descargar radar como imagen PNG"
     },
     'English': {
         'titulo': "📊 Radar Scouting CONMEBOL - Summary Visualization",
@@ -58,8 +57,7 @@ textos = {
         'no_data': "⚠️ No players match the filters.",
         'tabla': "### 📋 Player Table",
         'csv': "⬇️ Download table as CSV",
-        'png': "🖼️ Download radar as PNG image",
-        'firma': "<div style='text-align:center; font-size:13px; color:gray;'>By: Felipe Ormazabal - Football Scout & Data Analyst</div>"
+        'png': "🖼️ Download radar as PNG image"
     }
 }
 t = textos[idioma]
@@ -143,9 +141,11 @@ filtro_df = filtro_df[
 if filtro_df.empty:
     st.warning(t['no_data'])
 else:
+    # Combinar ELO con jugadores filtrados
     df_merged = df_percentiles.merge(df, on="UniqueID", how="left")
     mostrar = df_merged[df_merged['UniqueID'].isin(filtro_df['UniqueID'])].drop_duplicates("UniqueID")
 
+    # Top jugadores para radar
     top_df = mostrar.sort_values("ELO", ascending=False).head(top_n)
     top_players = [(row['UniqueID'], {cat: row[cat] for cat in categorias}) for _, row in top_df.iterrows()]
 
@@ -159,7 +159,19 @@ else:
         xanchor="left", yanchor="top",
         opacity=0.8,
         layer="above"
-    )])
+    )],
+    annotations=[
+        dict(
+            text="By: Felipe Ormazábal<br>Football Scout | Data Analyst",
+            showarrow=False,
+            x=0.5,
+            y=-0.25,
+            xref="paper",
+            yref="paper",
+            font=dict(size=12, color="white"),
+            align="center"
+        )
+    ])
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -201,6 +213,3 @@ else:
 
     st.download_button(t['csv'], mostrar[columnas_final].to_csv(index=False).encode('utf-8'),
                        file_name="ranking_elo.csv", mime="text/csv")
-
-    # Agregar firma
-    st.markdown(t['firma'], unsafe_allow_html=True)
